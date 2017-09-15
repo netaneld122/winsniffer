@@ -1,7 +1,6 @@
 # Python winsniffer #
 
-This is a simple network sniffer written in Python for Windows.
-The parsing engine can be easily extended to dissect new protocols.
+This is a simple network sniffer written in Python for Windows. Its parsing engine can be easily extended to dissect new protocols.
 
 Usage:
 ```python
