@@ -1,11 +1,12 @@
 # Python winsniffer #
 
 This is a simple network sniffer written in Python for Windows.
+The parsing engine can be easily extended to dissect new protocols.
 
-Its parsing engine can be easily extended to dissect new protocols, it also has a basic wxPython based GUI.
-
-Example:
+Usage:
 ```python
+import winsniffer
+
 sniffer = winsniffer.Sniffer(promiscuous=True)
 for frame in sniffer:
     print(frame)
