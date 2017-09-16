@@ -6,8 +6,8 @@ except ImportError:
 
 setup(
     name='winsniffer',
-    version='0.1',
-    install_requires=['dpkt', 'hexdump', 'pypcap'],
+    version='1.0',
+    install_requires=['dpkt', 'hexdump', 'pypcap', 'wxpython'],
     packages=['winsniffer'],
     url='https://bitbucket.org/netaneld122/winsniffer',
     license='GPL License',

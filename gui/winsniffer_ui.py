@@ -2,15 +2,15 @@ import wx
 import wx.py
 import time
 import threading
-import binascii
 import winsniffer
+import frame_formatting
 
 from list_control import ListControl
 
 
 class WinsnifferFrame(wx.Frame):
     def __init__(self, title):
-        super(WinsnifferFrame, self).__init__(None, wx.ID_ANY, title, size=(850, 600))
+        super(WinsnifferFrame, self).__init__(None, wx.ID_ANY, title, size=(1000, 700))
 
         # Create top level panel
         panel = wx.Panel(self)
@@ -33,51 +33,38 @@ class WinsnifferFrame(wx.Frame):
         # Center the window
         self.Center()
 
-        self.start_populating_list()
+        self.should_stop = False
+
+        self.populate_list_thread = threading.Thread(target=self.populate_list)
+        self.populate_list_thread.start()
+
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+    def on_close(self, event):
+        self.should_stop = True
+        self.populate_list_thread.join(timeout=2)
+        self.Destroy()
 
     @staticmethod
     def set_columns(list_control):
-        columns = ('No.', 'Time', 'From', 'To', 'Stack[0]', 'Stack[1]', 'Stack[2]', 'Data')
-        for column_index, column in enumerate(columns):
-            list_control.InsertColumn(column_index, column, width=wx.LIST_AUTOSIZE)
+        columns = (
+            ('No.', 50),
+            ('Time', 70),
+            ('From', 110),
+            ('To', 110),
+            ('Stack[0]', 70),
+            ('Stack[1]', 70),
+            ('Stack[2]', 70),
+            ('Length', 70),
+            ('Data Preview', wx.LIST_AUTOSIZE)
+        )
+        for column_index, (column, width) in enumerate(columns):
+            list_control.InsertColumn(column_index, column, width=width)
 
-    def start_populating_list(self):
-        thread = threading.Thread(target=self.populate_list)
-        thread.start()
-
-    @staticmethod
-    def prettify_mac_address(mac_address):
-        return ':'.join(map(binascii.hexlify, mac_address))
-
-    @staticmethod
-    def prettify_frame_data(frame):
-        protocol = frame
-        while not isinstance(protocol, str):
-            protocol = protocol.data
-        return binascii.hexlify(protocol[:min(20, len(protocol) - 1)]).upper()
-
-    @staticmethod
-    def get_protocol_name(frame, depth):
-        protocol = frame
-
-        while hasattr(protocol, 'data') and depth > 0:
-            if isinstance(protocol.data, str):
-                return ''
-
-            protocol = protocol.data
-            depth -= 1
-
-        return protocol.__class__.__name__
-
-    def add_item(self, i, timestamp, frame):
-        index = self.list_control.InsertItem(self.list_control.GetItemCount(), str(i + 1))
-        self.list_control.SetItem(index, 1, str(timestamp))
-        self.list_control.SetItem(index, 2, self.prettify_mac_address(frame.src))
-        self.list_control.SetItem(index, 3, self.prettify_mac_address(frame.dst))
-        self.list_control.SetItem(index, 4, self.get_protocol_name(frame, 0))
-        self.list_control.SetItem(index, 5, self.get_protocol_name(frame, 1))
-        self.list_control.SetItem(index, 6, self.get_protocol_name(frame, 2))
-        self.list_control.SetItem(index, 7, self.prettify_frame_data(frame))
+    def add_item(self, row):
+        index = self.list_control.InsertItem(self.list_control.GetItemCount(), str(row[0]))
+        for i, value in enumerate(row[1:]):
+            self.list_control.SetItem(index, i + 1, str(value))
 
         # Auto scroll only when the user is scrolled to the bottom
         self.smart_auto_scroll()
@@ -92,14 +79,29 @@ class WinsnifferFrame(wx.Frame):
 
     def populate_list(self):
         initial_timestamp = time.time()
-        sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[3])
+        sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[1])
         for i, (timestamp, frame) in enumerate(sniffer):
-            wx.CallAfter(self.add_item, i, timestamp - initial_timestamp, frame)
+            if self.should_stop:
+                break
+
+            length, data_preview = frame_formatting.get_frame_data_preview(frame)
+            row = (
+                i + 1,
+                "{0:.7f}".format(timestamp - initial_timestamp),
+                frame_formatting.prettify_mac_address(frame.src),
+                frame_formatting.prettify_mac_address(frame.dst),
+                frame_formatting.get_protocol_name(frame, 0),
+                frame_formatting.get_protocol_name(frame, 1),
+                frame_formatting.get_protocol_name(frame, 2),
+                str(length) + " Bytes",
+                data_preview
+            )
+            wx.CallAfter(self.add_item, row)
 
 
 def main():
     app = wx.App()
-    frame = WinsnifferFrame("Winsniffer 1.0 Alpha")
+    frame = WinsnifferFrame("Winsniffer 1.0 Pre-Alpha")
     frame.Show(True)
     app.MainLoop()
 
