@@ -1,6 +1,8 @@
 import wx
 import wx.py
+import time
 import threading
+import binascii
 import winsniffer
 
 from list_control import ListControl
@@ -35,23 +37,47 @@ class WinsnifferFrame(wx.Frame):
 
     @staticmethod
     def set_columns(list_control):
-        columns = ('No.', 'Time', 'From', 'To', 'Data Link', 'Network', 'Transport', 'Data')
+        columns = ('No.', 'Time', 'From', 'To', 'Stack[0]', 'Stack[1]', 'Stack[2]', 'Data')
         for column_index, column in enumerate(columns):
-            list_control.InsertColumn(column_index, column)
+            list_control.InsertColumn(column_index, column, width=wx.LIST_AUTOSIZE)
 
     def start_populating_list(self):
         thread = threading.Thread(target=self.populate_list)
         thread.start()
 
-    def add_item(self, i):
+    @staticmethod
+    def prettify_mac_address(mac_address):
+        return ':'.join(map(binascii.hexlify, mac_address))
+
+    @staticmethod
+    def prettify_frame_data(frame):
+        protocol = frame
+        while not isinstance(protocol, str):
+            protocol = protocol.data
+        return binascii.hexlify(protocol[:min(20, len(protocol) - 1)]).upper()
+
+    @staticmethod
+    def get_protocol_name(frame, depth):
+        protocol = frame
+
+        while hasattr(protocol, 'data') and depth > 0:
+            if isinstance(protocol.data, str):
+                return ''
+
+            protocol = protocol.data
+            depth -= 1
+
+        return protocol.__class__.__name__
+
+    def add_item(self, i, timestamp, frame):
         index = self.list_control.InsertItem(self.list_control.GetItemCount(), str(i + 1))
-        self.list_control.SetItem(index, 1, '0.0000')
-        self.list_control.SetItem(index, 2, '127.0.0.1')
-        self.list_control.SetItem(index, 3, '127.0.0.1')
-        self.list_control.SetItem(index, 4, 'Ethernet')
-        self.list_control.SetItem(index, 5, 'IP')
-        self.list_control.SetItem(index, 6, 'TCP')
-        self.list_control.SetItem(index, 7, '0x11 0x11 0x11 0x11 ...')
+        self.list_control.SetItem(index, 1, str(timestamp))
+        self.list_control.SetItem(index, 2, self.prettify_mac_address(frame.src))
+        self.list_control.SetItem(index, 3, self.prettify_mac_address(frame.dst))
+        self.list_control.SetItem(index, 4, self.get_protocol_name(frame, 0))
+        self.list_control.SetItem(index, 5, self.get_protocol_name(frame, 1))
+        self.list_control.SetItem(index, 6, self.get_protocol_name(frame, 2))
+        self.list_control.SetItem(index, 7, self.prettify_frame_data(frame))
 
         # Auto scroll only when the user is scrolled to the bottom
         self.smart_auto_scroll()
@@ -65,10 +91,10 @@ class WinsnifferFrame(wx.Frame):
             self.list_control.EnsureVisible(item_count - 1)
 
     def populate_list(self):
-        for i in range(1000):
-            import time
-            time.sleep(0.1)
-            wx.CallAfter(self.add_item, i)
+        initial_timestamp = time.time()
+        sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[3])
+        for i, (timestamp, frame) in enumerate(sniffer):
+            wx.CallAfter(self.add_item, i, timestamp - initial_timestamp, frame)
 
 
 def main():

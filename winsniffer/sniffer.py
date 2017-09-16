@@ -3,12 +3,13 @@ import dpkt
 
 
 class Sniffer(object):
-    def __init__(self, device, promiscuous=False):
+    def __init__(self, device, promiscuous=False, buffering=False):
         """
         :param device: The name of the device to sniff from
         :param promiscuous: Should the sniffer use promiscuous mode
+        :param buffering: Should use buffering
         """
-        self.sniffer = pcap.pcap(name=device, promisc=promiscuous)
+        self.sniffer = pcap.pcap(name=device, promisc=promiscuous, immediate=not buffering)
 
     def __iter__(self):
         """
