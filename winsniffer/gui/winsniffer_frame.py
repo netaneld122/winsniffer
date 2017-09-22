@@ -16,6 +16,14 @@ class WinsnifferFrame(wx.Frame):
         # Create top level panel
         panel = wx.Panel(self)
 
+        # Add filter control
+        filter_control = wx.SearchCtrl(panel, id=ids.ID_FILTER_CONTROL, size=(-1, 30), style=wx.TE_PROCESS_ENTER)
+        filter_control.SetFont(wx.Font(wx.FontInfo(12).FaceName("Trebuchet MS")))
+        filter_control.SetSearchBitmap(wx.Bitmap(icons.FILTER))
+        filter_control.SetDescriptiveText("Filter")
+        bright_blue = wx.Colour(240, 240, 240)
+        filter_control.SetBackgroundColour(bright_blue)
+
         # Add list control
         self.content_provider = ContentProvider()
         self.list_control = ListControl(panel, self.content_provider)
@@ -23,7 +31,8 @@ class WinsnifferFrame(wx.Frame):
 
         # Set a vertical sizer
         vertical_sizer = wx.BoxSizer(wx.VERTICAL)
-        vertical_sizer.Add(self.list_control, 1, wx.EXPAND)
+        vertical_sizer.Add(filter_control, 0, wx.EXPAND)
+        vertical_sizer.Add(self.list_control, 1, wx.EXPAND | wx.ALL)
         panel.SetSizer(vertical_sizer)
 
         self.set_tool_bar()
@@ -34,6 +43,8 @@ class WinsnifferFrame(wx.Frame):
         self.should_stop = True
         self.capture_thread = None
 
+        # Bindings
+        self.Bind(wx.EVT_TEXT_ENTER, self.on_filter, id=ids.ID_FILTER_CONTROL)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
     def set_tool_bar(self):
@@ -47,12 +58,6 @@ class WinsnifferFrame(wx.Frame):
         tool_bar.AddTool(ids.ID_TOGGLE_CAPTURING_BUTTON, "", wx.Bitmap(icons.START), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Start Capturing")
 
-        search_control = wx.TextCtrl(tool_bar, size=(500, 38), style=wx.TE_PROCESS_ENTER)
-        search_control.SetHint("Filter")
-        search_control.SetFont(wx.Font(wx.FontInfo(10).FaceName("Consolas")))
-        # search_control.ShowCancelButton(True)
-        tool_bar.AddControl(search_control)
-
         tool_bar.AddTool(ids.ID_AUTO_SCROLL_BUTTON, "", wx.Bitmap(icons.AUTO_SCROLL), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Auto scroll")
 
@@ -61,7 +66,8 @@ class WinsnifferFrame(wx.Frame):
         tool_bar.AddTool(ids.ID_CLEAR_BUTTON, "", wx.Bitmap(icons.CLEAR), wx.NullBitmap, wx.ITEM_NORMAL, "Clear")
 
         # Draw the tool bar
-        tool_bar.SetBackgroundColour(wx.Colour(70, 100, 160))
+        dark_blue = wx.Colour(70, 100, 160)
+        tool_bar.SetBackgroundColour(dark_blue)
         tool_bar.Realize()
 
         # Bindings
@@ -70,6 +76,12 @@ class WinsnifferFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.on_toggle_capturing, id=ids.ID_TOGGLE_CAPTURING_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_auto_scroll, id=ids.ID_AUTO_SCROLL_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_clear, id=ids.ID_CLEAR_BUTTON)
+
+    def on_filter(self, event):
+        filter_control = event.GetEventObject()
+        text = filter_control.GetValue().lower()
+        self.list_control.set_filter(lambda row: text in ' '.join(map(str, row)).lower())
+        wx.CallAfter(self.list_control.reload)
 
     def on_save(self, event):
         def doit():
@@ -125,11 +137,13 @@ class WinsnifferFrame(wx.Frame):
 
     def on_close(self, event):
         self.should_stop = True
+        if self.capture_thread is not None:
+            self.capture_thread.join(0.5)
         self.Destroy()
 
     def add_row_and_scroll(self, row):
-        self.list_control.add_row(row)
-        self.list_control.smart_auto_scroll()
+        if self.list_control.add_row(row):
+            self.list_control.smart_auto_scroll()
 
     def start_capturing(self):
         while not self.should_stop:

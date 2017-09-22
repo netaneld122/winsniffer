@@ -18,3 +18,4 @@ ID_AUTO_SCROLL_BUTTON = id_generator.next()
 ID_CLEAR_BUTTON = id_generator.next()
 
 ID_ADD_STRUCTURE_FRAME = id_generator.next()
+ID_FILTER_CONTROL = id_generator.next()
