@@ -87,6 +87,8 @@ class WinsnifferFrame(wx.Frame):
         self.list_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row)).lower())
         self.list_control.reload()
 
+        self.update_status_bar_frame_count()
+
         if text == '':
             self.status_bar.update_filter_status("")
         else:
@@ -151,14 +153,15 @@ class WinsnifferFrame(wx.Frame):
             self.capture_thread.join(0.5)
         self.Destroy()
 
-    def add_row_and_scroll(self, row):
-        if self.list_control.add_row(row):
-            self.list_control.smart_auto_scroll()
-
-        # Update status bar
+    def update_status_bar_frame_count(self):
         total_rows = self.list_control.get_number_of_rows()
         total_displayed_rows = self.list_control.GetItemCount()
         self.status_bar.update_frame_count("Displaying {} / {} frames".format(total_displayed_rows, total_rows))
+
+    def add_row_and_scroll(self, row):
+        if self.list_control.add_row(row):
+            self.list_control.smart_auto_scroll()
+        self.update_status_bar_frame_count()
 
     def start_capturing(self):
         while not self.should_stop:

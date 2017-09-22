@@ -7,7 +7,7 @@ import winsniffer.gui.frame_formatting as frame_formatting
 class ContentProvider(object):
     def __init__(self):
         self.initial_timestamp = time.time()
-        self.sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[2], timeout_ms=100)
+        self.sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[2], buffering=True, timeout_ms=100)
         self.index = 0
         self.should_stop = False
 
