@@ -12,7 +12,7 @@ from winsniffer.gui.status_bar import StatusBar
 
 class WinsnifferFrame(wx.Frame):
     def __init__(self, title):
-        super(WinsnifferFrame, self).__init__(None, wx.ID_ANY, title, size=(1000, 700))
+        super(WinsnifferFrame, self).__init__(None, wx.ID_ANY, title, size=(1150, 700))
 
         # Create top level panel
         panel = wx.Panel(self)

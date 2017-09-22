@@ -16,15 +16,17 @@ def get_frame_data_preview(frame):
     while not isinstance(protocol, str):
         protocol = protocol.data
 
-    threshold = 40
-
-    data_preview = protocol[:min(threshold, len(protocol) - 1)]
+    threshold = 80
 
     if protocol == '\x00':
         data_preview = '00'
-    elif len(protocol) > 0 and is_printable(data_preview):
+    elif is_printable(protocol):
+        # Cut the printable data at the threshold
+        data_preview = protocol[:min(threshold, len(protocol) - 1)]
         data_preview = unicode(data_preview)
     else:
+        # Cut the raw non-printable data at the fourth of the threshold
+        data_preview = protocol[:min(threshold / 3, len(protocol) - 1)]
         data_preview = ' '.join(map(lambda s: binascii.hexlify(s).upper(), data_preview))
 
     # We truncated the data so add a ... indicator for that
