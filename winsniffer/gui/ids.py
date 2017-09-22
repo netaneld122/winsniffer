@@ -12,7 +12,6 @@ id_generator = create_id_generator()
 
 # Toolbar buttons
 ID_SAVE_BUTTON = id_generator.next()
-ID_START_CAPTURING_BUTTON = id_generator.next()
-ID_STOP_CAPTURING_BUTTON = id_generator.next()
+ID_TOGGLE_CAPTURING_BUTTON = id_generator.next()
 ID_AUTO_SCROLL_BUTTON = id_generator.next()
 ID_CLEAR_BUTTON = id_generator.next()
