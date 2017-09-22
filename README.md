@@ -20,4 +20,4 @@ for timestamp, frame in sniffer:
 
 GUI:
 
-![alt Winsniffer GUI](https://i.imgur.com/9KwlStE.png)
+![alt Winsniffer GUI](https://i.imgur.com/j5DN5QC.jpg)
