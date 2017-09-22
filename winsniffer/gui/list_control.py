@@ -14,19 +14,8 @@ class ListControl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         # Style
         self.SetBackgroundColour(wx.Colour(230, 230, 250))
 
-        self.Bind(wx.EVT_SCROLLWIN_LINEUP, self.on_scroll_up)
-        self.Bind(wx.EVT_SCROLL_LINEUP, self.on_scroll_up)
-        self.Bind(wx.EVT_SCROLL_TOP, self.on_scroll_up)
-        self.Bind(wx.EVT_SCROLLWIN_TOP, self.on_scroll_up)
-        self.Bind(wx.EVT_SCROLL_PAGEUP, self.on_scroll_up)
-        self.Bind(wx.EVT_SCROLLWIN_PAGEUP, self.on_scroll_up)
-
-
         self.rows = []
         self.filter = None
-
-    def on_scroll_up(self, event):
-        print 'Scrolled UP!'
 
     def add_row(self, row):
         self.rows.append(row)
@@ -44,6 +33,9 @@ class ListControl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         if index % 2 == 0:
             self.SetItemBackgroundColour(index, "white")
         return True
+
+    def delete_all_rows(self):
+        self.rows = []
 
     def reload(self):
         wx.BeginBusyCursor()

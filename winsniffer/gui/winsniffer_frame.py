@@ -133,6 +133,7 @@ class WinsnifferFrame(wx.Frame):
         self.list_control.EnsureVisible(item_count - 1)
 
     def on_clear(self, event):
+        self.list_control.delete_all_rows()
         self.list_control.DeleteAllItems()
 
     def on_close(self, event):
