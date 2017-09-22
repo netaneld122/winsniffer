@@ -42,11 +42,22 @@ class WinsnifferFrame(wx.Frame):
         # Define buttons
         tool_bar.AddTool(ids.ID_SAVE_BUTTON, "", wx.Bitmap(icons.SAVE), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Save")
+        tool_bar.AddTool(ids.ID_ADD_BUTTON, "", wx.Bitmap(icons.ADD), wx.NullBitmap, wx.ITEM_NORMAL,
+                         "Add Template")
         tool_bar.AddTool(ids.ID_TOGGLE_CAPTURING_BUTTON, "", wx.Bitmap(icons.START), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Start Capturing")
+
+        search_control = wx.TextCtrl(tool_bar, size=(500, 38), style=wx.TE_PROCESS_ENTER)
+        search_control.SetHint("Filter")
+        search_control.SetFont(wx.Font(wx.FontInfo(10).FaceName("Consolas")))
+        # search_control.ShowCancelButton(True)
+        tool_bar.AddControl(search_control)
+
         tool_bar.AddTool(ids.ID_AUTO_SCROLL_BUTTON, "", wx.Bitmap(icons.AUTO_SCROLL), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Auto scroll")
+
         tool_bar.AddStretchableSpace()
+
         tool_bar.AddTool(ids.ID_CLEAR_BUTTON, "", wx.Bitmap(icons.CLEAR), wx.NullBitmap, wx.ITEM_NORMAL, "Clear")
 
         # Draw the tool bar
@@ -55,6 +66,7 @@ class WinsnifferFrame(wx.Frame):
 
         # Bindings
         self.Bind(wx.EVT_TOOL, self.on_save, id=ids.ID_SAVE_BUTTON)
+        self.Bind(wx.EVT_TOOL, self.on_add, id=ids.ID_ADD_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_toggle_capturing, id=ids.ID_TOGGLE_CAPTURING_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_auto_scroll, id=ids.ID_AUTO_SCROLL_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_clear, id=ids.ID_CLEAR_BUTTON)
@@ -66,9 +78,21 @@ class WinsnifferFrame(wx.Frame):
             output = ''
             for i in range(0, item_count):
                 row = [self.list_control.GetItemText(i, j) for j in range(0, column_count)]
-                output += ', '.join(row) + '\n'
+                output += ','.join(row) + '\n'
             print(output)
         wx.CallAfter(doit)
+
+    def on_add(self, event):
+        # Enforce one window
+        add_structure_frame = self.FindWindowById(ids.ID_ADD_STRUCTURE_FRAME)
+        if add_structure_frame is not None:
+            add_structure_frame.SetFocus()
+            return
+
+        add_structure_frame = wx.Frame(self, ids.ID_ADD_STRUCTURE_FRAME, "Add structures")
+        wx.Panel(add_structure_frame)
+        add_structure_frame.Center()
+        add_structure_frame.Show()
 
     @staticmethod
     def change_toggle_button_icon(event, icon, text):
