@@ -7,6 +7,7 @@ import winsniffer.gui.icons as icons
 
 from winsniffer.gui.content_provider import ContentProvider
 from winsniffer.gui.list_control import ListControl
+from winsniffer.gui.status_bar import StatusBar
 
 
 class WinsnifferFrame(wx.Frame):
@@ -36,6 +37,9 @@ class WinsnifferFrame(wx.Frame):
         panel.SetSizer(vertical_sizer)
 
         self.set_tool_bar()
+
+        self.status_bar = StatusBar(self)
+        self.SetStatusBar(self.status_bar)
 
         # Center the window
         self.Center()
@@ -79,9 +83,14 @@ class WinsnifferFrame(wx.Frame):
 
     def on_filter(self, event):
         filter_control = event.GetEventObject()
-        text = filter_control.GetValue().lower()
-        self.list_control.set_filter(lambda row: text in ' '.join(map(str, row)).lower())
-        wx.CallAfter(self.list_control.reload)
+        text = filter_control.GetValue()
+        self.list_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row)).lower())
+        self.list_control.reload()
+
+        if text == '':
+            self.status_bar.update_filter_status("")
+        else:
+            self.status_bar.update_filter_status("Filter '{}'".format(text))
 
     def on_save(self, event):
         def doit():
@@ -145,6 +154,11 @@ class WinsnifferFrame(wx.Frame):
     def add_row_and_scroll(self, row):
         if self.list_control.add_row(row):
             self.list_control.smart_auto_scroll()
+
+        # Update status bar
+        total_rows = self.list_control.get_number_of_rows()
+        total_displayed_rows = self.list_control.GetItemCount()
+        self.status_bar.update_frame_count("Displaying {} / {} frames".format(total_displayed_rows, total_rows))
 
     def start_capturing(self):
         while not self.should_stop:

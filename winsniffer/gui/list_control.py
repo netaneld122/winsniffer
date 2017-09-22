@@ -21,9 +21,11 @@ class ListControl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         self.rows.append(row)
         return self._add_row_as_item(row)
 
+    def get_number_of_rows(self):
+        return len(self.rows)
+
     def _add_row_as_item(self, row):
         if self.filter is not None and not self.filter(row):
-            print 'Filtered out', row
             return False
 
         index = self.InsertItem(self.GetItemCount(), str(row[0]))
