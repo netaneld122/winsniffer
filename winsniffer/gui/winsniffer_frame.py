@@ -55,18 +55,16 @@ class WinsnifferFrame(wx.Frame):
         tool_bar = self.CreateToolBar(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
 
         # Define buttons
-        tool_bar.AddTool(ids.ID_SAVE_BUTTON, "", wx.Bitmap(icons.SAVE), wx.NullBitmap, wx.ITEM_NORMAL,
-                         "Save")
         tool_bar.AddTool(ids.ID_ADD_BUTTON, "", wx.Bitmap(icons.ADD), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Add Template")
+        tool_bar.AddTool(ids.ID_SAVE_BUTTON, "", wx.Bitmap(icons.SAVE), wx.NullBitmap, wx.ITEM_NORMAL,
+                         "Save")
         tool_bar.AddTool(ids.ID_TOGGLE_CAPTURING_BUTTON, "", wx.Bitmap(icons.START), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Start Capturing")
-
         tool_bar.AddTool(ids.ID_AUTO_SCROLL_BUTTON, "", wx.Bitmap(icons.AUTO_SCROLL), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Auto scroll")
 
         tool_bar.AddStretchableSpace()
-
         tool_bar.AddTool(ids.ID_CLEAR_BUTTON, "", wx.Bitmap(icons.CLEAR), wx.NullBitmap, wx.ITEM_NORMAL, "Clear")
 
         # Draw the tool bar
@@ -112,7 +110,7 @@ class WinsnifferFrame(wx.Frame):
             add_structure_frame.SetFocus()
             return
 
-        add_structure_frame = wx.Frame(self, ids.ID_ADD_STRUCTURE_FRAME, "Add structures")
+        add_structure_frame = wx.Frame(self, ids.ID_ADD_STRUCTURE_FRAME, "Add Structures")
         wx.Panel(add_structure_frame)
         add_structure_frame.Center()
         add_structure_frame.Show()
