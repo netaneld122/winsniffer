@@ -173,7 +173,7 @@ class WinsnifferFrame(wx.Frame):
                 rows.append(row)
 
             # Is it flush time?
-            if len(rows) > 0 and time.time() - start > 0.2:
+            if len(rows) > 0 and time.time() - start > 0.1:
                 wx.CallAfter(self.add_rows_and_scroll, rows[:])
                 rows = []
                 start = time.time()
