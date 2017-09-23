@@ -23,7 +23,7 @@ def get_frame_data_preview(frame):
     elif is_printable(protocol):
         # Cut the printable data at the threshold
         data_preview = protocol[:min(threshold, len(protocol) - 1)]
-        data_preview = unicode(data_preview)
+        data_preview = unicode(data_preview).replace('\r\n', ' ').replace('\n', ' ')
     else:
         # Cut the raw non-printable data at the fourth of the threshold
         data_preview = protocol[:min(threshold / 3, len(protocol) - 1)]
