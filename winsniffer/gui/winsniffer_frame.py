@@ -1,5 +1,6 @@
 import wx
 import wx.py
+import time
 import threading
 
 import winsniffer.gui.ids as ids
@@ -38,6 +39,7 @@ class WinsnifferFrame(wx.Frame):
 
         self.set_tool_bar()
 
+        # Set status bar
         self.status_bar = StatusBar(self)
         self.SetStatusBar(self.status_bar)
 
@@ -156,17 +158,25 @@ class WinsnifferFrame(wx.Frame):
         total_displayed_rows = self.list_control.GetItemCount()
         self.status_bar.update_frame_count("Displaying {} / {} frames".format(total_displayed_rows, total_rows))
 
-    def add_row_and_scroll(self, row):
-        if self.list_control.add_row(row):
-            self.list_control.smart_auto_scroll()
-        self.update_status_bar_frame_count()
+    def add_rows_and_scroll(self, rows):
+        results = [self.list_control.add_row(row) for row in rows]
+        if any(results):
+            self.list_control.smart_auto_scroll(len(results))
+            self.update_status_bar_frame_count()
 
     def start_capturing(self):
+        rows = []
+        start = time.time()
         while not self.should_stop:
             row = self.content_provider.get_next_row()
-            if row is None:
-                continue
-            wx.CallAfter(self.add_row_and_scroll, row)
+            if row is not None:
+                rows.append(row)
+
+            # Is it flush time?
+            if len(rows) > 0 and time.time() - start > 0.2:
+                wx.CallAfter(self.add_rows_and_scroll, rows[:])
+                rows = []
+                start = time.time()
 
 
 def show():

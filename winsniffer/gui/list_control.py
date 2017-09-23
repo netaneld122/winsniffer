@@ -54,10 +54,10 @@ class ListControl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
     def set_filter(self, filter):
         self.filter = filter
 
-    def smart_auto_scroll(self):
+    def smart_auto_scroll(self, items_added):
         scroll_position = self.GetScrollPos(wx.VERTICAL)
         visible_items_count = self.GetCountPerPage()
         scroll_bottom_position = scroll_position + visible_items_count
         item_count = self.GetItemCount()
-        if scroll_bottom_position >= item_count - 3:
+        if scroll_bottom_position >= item_count - 2 - items_added:
             self.EnsureVisible(item_count - 1)
