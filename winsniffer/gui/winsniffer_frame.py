@@ -6,7 +6,7 @@ import winsniffer.gui.ids as ids
 import winsniffer.gui.icons as icons
 
 from winsniffer.gui.content_provider import ContentProvider
-from winsniffer.gui.list_control import ListControl
+from winsniffer.gui.data_view_control import DataViewControl
 from winsniffer.gui.status_bar import StatusBar
 
 
@@ -27,13 +27,13 @@ class WinsnifferFrame(wx.Frame):
 
         # Add list control
         self.content_provider = ContentProvider()
-        self.list_control = ListControl(panel, self.content_provider)
-        self.list_control.SetBackgroundColour(wx.Colour(245, 245, 248))
+        self.data_view_control = DataViewControl(panel, self.content_provider)
+        self.data_view_control.SetBackgroundColour(wx.Colour(245, 245, 248))
 
         # Set a vertical sizer
         vertical_sizer = wx.BoxSizer(wx.VERTICAL)
         vertical_sizer.Add(filter_control, 0, wx.EXPAND)
-        vertical_sizer.Add(self.list_control, 1, wx.EXPAND | wx.ALL)
+        vertical_sizer.Add(self.data_view_control, 1, wx.EXPAND | wx.ALL)
         panel.SetSizer(vertical_sizer)
 
         self.set_tool_bar()
@@ -82,8 +82,8 @@ class WinsnifferFrame(wx.Frame):
     def on_filter(self, event):
         filter_control = event.GetEventObject()
         text = filter_control.GetValue()
-        self.list_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row)).lower())
-        self.list_control.reload()
+        #self.data_view_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row)).lower())
+        #self.data_view_control.reload()
 
         self.update_status_bar_frame_count()
 
@@ -94,11 +94,11 @@ class WinsnifferFrame(wx.Frame):
 
     def on_save(self, event):
         def doit():
-            item_count = self.list_control.GetItemCount()
-            column_count = self.list_control.GetColumnCount()
+            item_count = self.data_view_control.GetItemCount()
+            column_count = self.data_view_control.GetColumnCount()
             output = ''
             for i in range(0, item_count):
-                row = [self.list_control.GetItemText(i, j) for j in range(0, column_count)]
+                row = [self.data_view_control.GetItemText(i, j) for j in range(0, column_count)]
                 output += ','.join(row) + '\n'
             print(output)
         wx.CallAfter(doit)
@@ -138,12 +138,10 @@ class WinsnifferFrame(wx.Frame):
         self.capture_thread.start()
 
     def on_auto_scroll(self, event):
-        item_count = self.list_control.GetItemCount()
-        self.list_control.EnsureVisible(item_count - 1)
+        item_count = self.data_view_control.smart_auto_scroll()
 
     def on_clear(self, event):
-        self.list_control.delete_all_rows()
-        self.list_control.DeleteAllItems()
+        self.data_view_control.clear_all()
 
     def on_close(self, event):
         self.should_stop = True
@@ -152,13 +150,13 @@ class WinsnifferFrame(wx.Frame):
         self.Destroy()
 
     def update_status_bar_frame_count(self):
-        total_rows = self.list_control.get_number_of_rows()
-        total_displayed_rows = self.list_control.GetItemCount()
+        total_rows = self.data_view_control.get_total_items_count()
+        total_displayed_rows = self.data_view_control.get_displayed_items_count()
         self.status_bar.update_frame_count("Displaying {} / {} frames".format(total_displayed_rows, total_rows))
 
     def add_row_and_scroll(self, row):
-        if self.list_control.add_row(row):
-            self.list_control.smart_auto_scroll()
+        self.data_view_control.add_row(row)
+        # self.data_view_control.smart_auto_scroll()
         self.update_status_bar_frame_count()
 
     def start_capturing(self):

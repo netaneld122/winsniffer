@@ -22,7 +22,7 @@ class ContentProvider(object):
             ('Stack[1]', 70),
             ('Stack[2]', 70),
             ('Length', 70),
-            ('Data Preview', wx.LIST_AUTOSIZE)
+            ('Data Preview', 300)
         )
 
     def get_next_row(self):
