@@ -1,4 +1,5 @@
 import binascii
+import string
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 
@@ -28,3 +29,11 @@ class PacketParser(object):
     @staticmethod
     def ip(data):
         return '.'.join(str(ord(c)) for c in data)
+
+    @staticmethod
+    def is_printable(_string):
+        return all(c in string.printable for c in _string)
+
+    @staticmethod
+    def hex_dump(data):
+        return ' '.join(map(lambda s: binascii.hexlify(s).upper(), data))

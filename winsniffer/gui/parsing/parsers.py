@@ -1,4 +1,5 @@
 from packet_parser import PacketParser
+from default_parser import DefaultParser
 
 
 class EchoParser(PacketParser):
@@ -12,4 +13,5 @@ class EchoParser(PacketParser):
 
 ALL_PARSERS = (
     EchoParser(),
+    DefaultParser(),
 )
