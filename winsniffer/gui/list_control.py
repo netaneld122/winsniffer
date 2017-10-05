@@ -29,7 +29,7 @@ class ListControl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
             return False
 
         index = self.InsertItem(self.GetItemCount(), str(row[0]))
-        for i, value in enumerate(row[1:]):
+        for i, value in enumerate(row[1:-1]):
             self.SetItem(index, i + 1, str(value))
 
         if index % 2 == 0:

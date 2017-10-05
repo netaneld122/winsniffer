@@ -1,7 +1,7 @@
-import wx
-import wx.py
 import time
 import threading
+import wx
+import wx.py
 
 import winsniffer.gui.ids as ids
 import winsniffer.gui.icons as icons
@@ -26,15 +26,24 @@ class WinsnifferFrame(wx.Frame):
         bright_blue = wx.Colour(240, 240, 240)
         filter_control.SetBackgroundColour(bright_blue)
 
+        # Create a splitter window for the list and shell
+        splitter = wx.SplitterWindow(panel)
+
         # Add list control
         self.content_provider = ContentProvider()
-        self.list_control = ListControl(panel, self.content_provider)
+        self.list_control = ListControl(splitter, self.content_provider)
         self.list_control.SetBackgroundColour(wx.Colour(245, 245, 248))
+
+        # Add python shell
+        self.shell = wx.py.shell.Shell(splitter, introText='Winsniffer Python Shell')
+
+        splitter.SplitHorizontally(self.list_control, self.shell)
+        splitter.SetSashGravity(0.8)
 
         # Set a vertical sizer
         vertical_sizer = wx.BoxSizer(wx.VERTICAL)
         vertical_sizer.Add(filter_control, 0, wx.EXPAND)
-        vertical_sizer.Add(self.list_control, 1, wx.EXPAND | wx.ALL)
+        vertical_sizer.Add(splitter, 1, wx.EXPAND | wx.ALL)
         panel.SetSizer(vertical_sizer)
 
         self.set_tool_bar()
@@ -50,6 +59,7 @@ class WinsnifferFrame(wx.Frame):
         self.capture_thread = None
 
         # Bindings
+        self.list_control.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_item_selected)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_filter, id=ids.ID_FILTER_CONTROL)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
@@ -84,7 +94,7 @@ class WinsnifferFrame(wx.Frame):
     def on_filter(self, event):
         filter_control = event.GetEventObject()
         text = filter_control.GetValue()
-        self.list_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row)).lower())
+        self.list_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row[:-1])).lower())
         self.list_control.reload()
 
         self.update_status_bar_frame_count()
@@ -92,7 +102,7 @@ class WinsnifferFrame(wx.Frame):
         if text == '':
             self.status_bar.update_filter_status("")
         else:
-            self.status_bar.update_filter_status("Filter '{}'".format(text))
+            self.status_bar.update_filter_status(u"Filter '{}'".format(text))
 
     def on_save(self, event):
         def doit():
@@ -116,6 +126,13 @@ class WinsnifferFrame(wx.Frame):
         wx.Panel(add_structure_frame)
         add_structure_frame.Center()
         add_structure_frame.Show()
+
+    def on_item_selected(self, event):
+        list_control = event.GetEventObject()
+        selected_item_id = list_control.GetFirstSelected()
+        global frame
+        frame = list_control.rows[selected_item_id][-1]
+        self.shell.run('frame')
 
     @staticmethod
     def change_toggle_button_icon(event, icon, text):

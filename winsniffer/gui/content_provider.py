@@ -42,6 +42,7 @@ class ContentProvider(object):
             frame_formatting.get_protocol_name(frame, 1),
             frame_formatting.get_protocol_name(frame, 2),
             str(length) + " Bytes",
-            data_preview
+            data_preview,
+            frame
         )
         return row
