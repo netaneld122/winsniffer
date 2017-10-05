@@ -1,7 +1,8 @@
 import binascii
 import string
 
-from winsniffer.gui.parsing.parsers import ALL_PARSERS
+from winsniffer.gui.parsing.custom_parsers import ALL_PARSERS
+from winsniffer.gui.parsing.default_parser import DefaultParser
 
 
 def prettify_mac_address(mac_address):
@@ -32,7 +33,7 @@ def find_parser(frame, data):
     for parser in ALL_PARSERS:
         if parser.condition(protocol_stack_set, data):
             return parser
-    return None
+    return DefaultParser()
 
 
 def get_unparsed_frame_data(frame):
