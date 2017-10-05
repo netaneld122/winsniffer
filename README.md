@@ -21,3 +21,7 @@ for timestamp, frame in sniffer:
 GUI:
 
 ![alt Winsniffer GUI](https://i.imgur.com/j5DN5QC.jpg)
+
+
+![alt Winsniffer GUI](https://i.imgur.com/iHTChOy.png)
+
