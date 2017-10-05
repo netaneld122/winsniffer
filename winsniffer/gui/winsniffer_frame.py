@@ -11,6 +11,10 @@ from winsniffer.gui.list_control import ListControl
 from winsniffer.gui.status_bar import StatusBar
 
 
+# Python shell global variables
+frames = []
+
+
 class WinsnifferFrame(wx.Frame):
     def __init__(self, title):
         super(WinsnifferFrame, self).__init__(None, wx.ID_ANY, title, size=(1150, 700))
@@ -94,7 +98,7 @@ class WinsnifferFrame(wx.Frame):
     def on_filter(self, event):
         filter_control = event.GetEventObject()
         text = filter_control.GetValue()
-        self.list_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row[:-1])).lower())
+        self.list_control.set_filter(lambda row: text.lower() in ' '.join(map(str, row)).lower())
         self.list_control.reload()
 
         self.update_status_bar_frame_count()
@@ -112,7 +116,9 @@ class WinsnifferFrame(wx.Frame):
             for i in range(0, item_count):
                 row = [self.list_control.GetItemText(i, j) for j in range(0, column_count)]
                 output += ','.join(row) + '\n'
-            print(output)
+            file_name = '{}.{}.csv'.format(time.strftime('%Y.%m.%d.%H.%M.%S'), int(round((time.time() % 1) * 1000)))
+            with open(file_name, 'w') as f:
+                f.write(output)
         wx.CallAfter(doit)
 
     def on_add(self, event):
@@ -129,10 +135,10 @@ class WinsnifferFrame(wx.Frame):
 
     def on_item_selected(self, event):
         list_control = event.GetEventObject()
-        selected_item_id = list_control.GetFirstSelected()
-        global frame
-        frame = list_control.rows[selected_item_id][-1]
-        self.shell.run('frame')
+        item_index = list_control.GetFirstSelected()
+        result_id = list_control.GetItemText(item_index, 0)
+        global frames
+        self.shell.run('frames[%d]' % int(result_id))
 
     @staticmethod
     def change_toggle_button_icon(event, icon, text):
@@ -161,7 +167,7 @@ class WinsnifferFrame(wx.Frame):
         self.list_control.EnsureVisible(item_count - 1)
 
     def on_clear(self, event):
-        self.list_control.delete_all_rows()
+        self.list_control.delete_all_results()
         self.list_control.DeleteAllItems()
 
     def on_close(self, event):
@@ -171,28 +177,32 @@ class WinsnifferFrame(wx.Frame):
         self.Destroy()
 
     def update_status_bar_frame_count(self):
-        total_rows = self.list_control.get_number_of_rows()
+        total_rows = self.list_control.get_number_of_results()
         total_displayed_rows = self.list_control.GetItemCount()
         self.status_bar.update_frame_count("Displaying {} / {} frames".format(total_displayed_rows, total_rows))
 
-    def add_rows_and_scroll(self, rows):
-        results = [self.list_control.add_row(row) for row in rows]
-        if any(results):
-            self.list_control.smart_auto_scroll(len(results))
+    def add_results_and_scroll(self, results):
+        result_success_codes = [self.list_control.add_result(result) for result in results]
+        if any(result_success_codes):
+            self.list_control.smart_auto_scroll(len(result_success_codes))
             self.update_status_bar_frame_count()
 
+        # Update the interpreter global frames
+        global frames
+        frames.extend((result[1] for result in results))
+
     def start_capturing(self):
-        rows = []
+        results = []
         start = time.time()
         while not self.should_stop:
-            row = self.content_provider.get_next_row()
-            if row is not None:
-                rows.append(row)
+            result = self.content_provider.get_next_result()
+            if result is not None:
+                results.append(result)
 
             # Is it flush time?
-            if len(rows) > 0 and time.time() - start > 0.1:
-                wx.CallAfter(self.add_rows_and_scroll, rows[:])
-                rows = []
+            if len(results) > 0 and time.time() - start > 0.1:
+                wx.CallAfter(self.add_results_and_scroll, results[:])
+                results = []
                 start = time.time()
 
 

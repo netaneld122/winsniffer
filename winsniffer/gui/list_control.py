@@ -14,38 +14,43 @@ class ListControl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         # Style
         self.SetBackgroundColour(wx.Colour(230, 230, 250))
 
-        self.rows = []
+        self._results = []
         self.filter = None
 
-    def add_row(self, row):
-        self.rows.append(row)
-        return self._add_row_as_item(row)
+    @property
+    def results(self):
+        return self._results
 
-    def get_number_of_rows(self):
-        return len(self.rows)
+    def add_result(self, result):
+        self._results.append(result)
+        return self._add_result_as_item(result)
 
-    def _add_row_as_item(self, row):
+    def get_number_of_results(self):
+        return len(self._results)
+
+    def _add_result_as_item(self, result):
+        row, _ = result
         if self.filter is not None and not self.filter(row):
             return False
 
         index = self.InsertItem(self.GetItemCount(), str(row[0]))
-        for i, value in enumerate(row[1:-1]):
+        for i, value in enumerate(row[1:]):
             self.SetItem(index, i + 1, str(value))
 
         if index % 2 == 0:
             self.SetItemBackgroundColour(index, "white")
         return True
 
-    def delete_all_rows(self):
-        self.rows = []
+    def delete_all_results(self):
+        self._results = []
 
     def reload(self):
         wx.BeginBusyCursor()
         try:
             self.Freeze()
             self.DeleteAllItems()
-            for row in self.rows:
-                self._add_row_as_item(row)
+            for result in self._results:
+                self._add_result_as_item(result)
             self.Thaw()
             self.Refresh()
         finally:

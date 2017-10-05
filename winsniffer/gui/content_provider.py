@@ -14,7 +14,7 @@ class ContentProvider(object):
     @staticmethod
     def get_columns():
         return (
-            ('No.', 50),
+            ('[ ]', 50),
             ('Time', 80),
             ('From', 110),
             ('To', 110),
@@ -25,14 +25,13 @@ class ContentProvider(object):
             ('Data Preview', wx.LIST_AUTOSIZE)
         )
 
-    def get_next_row(self):
+    def get_next_result(self):
         result = next(self.sniffer)
         if result is None:
             return None
 
         timestamp, frame = result
         length, data_preview = frame_formatting.get_frame_data_preview(frame)
-        self.index += 1
         row = (
             self.index,
             "{0:.7f}".format(timestamp - self.initial_timestamp),
@@ -42,7 +41,7 @@ class ContentProvider(object):
             frame_formatting.get_protocol_name(frame, 1),
             frame_formatting.get_protocol_name(frame, 2),
             str(length) + " Bytes",
-            data_preview,
-            frame
+            data_preview
         )
-        return row
+        self.index += 1
+        return row, frame
