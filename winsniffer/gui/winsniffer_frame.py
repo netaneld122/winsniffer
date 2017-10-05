@@ -42,7 +42,7 @@ class WinsnifferFrame(wx.Frame):
         self.shell = wx.py.shell.Shell(splitter, introText='Winsniffer Python Shell')
 
         splitter.SplitHorizontally(self.list_control, self.shell)
-        splitter.SetSashGravity(0.8)
+        splitter.SetSashGravity(0.75)
 
         # Set a vertical sizer
         vertical_sizer = wx.BoxSizer(wx.VERTICAL)
