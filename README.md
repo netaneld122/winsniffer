@@ -17,9 +17,35 @@ for timestamp, frame in sniffer:
 ```
 
 
+Graphical Interface:
 
-GUI:
+
+![alt Winsniffer GUI](https://i.imgur.com/fFYqwk8.png)
+
+Define your custom parser:
+
+*custom_parser.py*
+```python
+from winsniffer.gui.parsing.packet_parser import PacketParser
 
 
-![alt Winsniffer GUI](https://i.imgur.com/iHTChOy.png)
+class EchoParser(PacketParser):
+
+    def condition(self, protocols, data):
+        return {'ICMP'}.issubset(protocols) and data.startswith('abcdef')
+
+    def parse(self, frame, data):
+        return 'PING Echo was sent from {} to {}'.format(self.ip(frame.data.src), self.ip(frame.data.dst))
+
+
+PARSERS = (
+    EchoParser(),
+)
+```
+
+
+Observe the changes as new packets are sniffed:
+
+![alt Winsniffer GUI](https://i.imgur.com/hML2eZ3.png)
+
 
