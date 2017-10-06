@@ -2,7 +2,12 @@
 .idea/
 
 # Optimized python
-*.py[cod]
+*.py[co]
 
 # Python package files
 winsniffer.egg-info/
+
+# Pyinstaller files
+*.spec
+build/
+dist/
