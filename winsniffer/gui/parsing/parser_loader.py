@@ -13,11 +13,11 @@ class ParserLoader(object):
             self.script_path = parsers_python_script_path
         try:
             # The script must set the local PARSERS
-            locals = dict()
-            execfile(self.script_path, dict(), locals)
-            assert 'PARSERS' in locals, "The parser script {} did not define PARSERS".format(self.script_path)
-            self.parsers = locals['PARSERS']
-            print 'Reloaded parsers:', self.parsers
+            script_locals = dict()
+            execfile(self.script_path, dict(), script_locals)
+            assert 'PARSERS' in script_locals, "The parser script {} did not define PARSERS".format(self.script_path)
+            self.parsers = script_locals['PARSERS']
+            print('Reloaded parsers: ' + str(self.parsers))
         except RuntimeError:
             import traceback
             print traceback.format_exc()
