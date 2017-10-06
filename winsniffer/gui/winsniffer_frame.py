@@ -1,3 +1,4 @@
+import os
 import time
 import threading
 import wx
@@ -132,6 +133,7 @@ class WinsnifferFrame(wx.Frame):
             file_name = '{}.{}.csv'.format(time.strftime('%Y.%m.%d.%H.%M.%S'), int(round((time.time() % 1) * 1000)))
             with open(file_name, 'w') as f:
                 f.write(output)
+            print('Saved ' + os.path.abspath(file_name))
         wx.CallAfter(doit)
 
     def on_set_parsers(self, event):
