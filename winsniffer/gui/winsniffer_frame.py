@@ -9,6 +9,8 @@ import winsniffer.gui.icons as icons
 from winsniffer.gui.content_provider import ContentProvider
 from winsniffer.gui.list_control import ListControl
 from winsniffer.gui.status_bar import StatusBar
+from winsniffer.gui.parser_dialog import ParserDialog
+from winsniffer.gui.parsing.parser_loader import ParserLoader
 
 
 # Python shell global variables
@@ -18,6 +20,9 @@ frames = []
 class WinsnifferFrame(wx.Frame):
     def __init__(self, title):
         super(WinsnifferFrame, self).__init__(None, wx.ID_ANY, title, size=(1150, 700))
+
+        # This class is reponsible for reloading the parser script
+        self.parser_loader = ParserLoader()
 
         # Create top level panel
         panel = wx.Panel(self)
@@ -34,7 +39,7 @@ class WinsnifferFrame(wx.Frame):
         splitter = wx.SplitterWindow(panel)
 
         # Add list control
-        self.content_provider = ContentProvider()
+        self.content_provider = ContentProvider(self.parser_loader)
         self.list_control = ListControl(splitter, self.content_provider)
         self.list_control.SetBackgroundColour(wx.Colour(245, 245, 248))
 
@@ -71,8 +76,14 @@ class WinsnifferFrame(wx.Frame):
         tool_bar = self.CreateToolBar(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
 
         # Define buttons
-        tool_bar.AddTool(ids.ID_ADD_BUTTON, "", wx.Bitmap(icons.ADD), wx.NullBitmap, wx.ITEM_NORMAL,
-                         "Add Template")
+        tool_bar.AddTool(ids.ID_SET_PARSER_BUTTON, "", wx.Bitmap(icons.SET_PARSER), wx.NullBitmap, wx.ITEM_NORMAL,
+                         "Set Parser")
+
+        tool_bar.AddTool(ids.ID_RELOAD_PARSER_BUTTON, "", wx.Bitmap(icons.RELOAD_PARSER), wx.NullBitmap,
+                         wx.ITEM_NORMAL, "Reload Parser")
+
+        tool_bar.AddSeparator()
+
         tool_bar.AddTool(ids.ID_SAVE_BUTTON, "", wx.Bitmap(icons.SAVE), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Save")
         tool_bar.AddTool(ids.ID_TOGGLE_CAPTURING_BUTTON, "", wx.Bitmap(icons.START), wx.NullBitmap, wx.ITEM_NORMAL,
@@ -81,6 +92,7 @@ class WinsnifferFrame(wx.Frame):
                          "Auto scroll")
 
         tool_bar.AddStretchableSpace()
+
         tool_bar.AddTool(ids.ID_CLEAR_BUTTON, "", wx.Bitmap(icons.CLEAR), wx.NullBitmap, wx.ITEM_NORMAL, "Clear")
 
         # Draw the tool bar
@@ -90,7 +102,8 @@ class WinsnifferFrame(wx.Frame):
 
         # Bindings
         self.Bind(wx.EVT_TOOL, self.on_save, id=ids.ID_SAVE_BUTTON)
-        self.Bind(wx.EVT_TOOL, self.on_add, id=ids.ID_ADD_BUTTON)
+        self.Bind(wx.EVT_TOOL, self.on_set_parsers, id=ids.ID_SET_PARSER_BUTTON)
+        self.Bind(wx.EVT_TOOL, self.on_reload_parsers, id=ids.ID_RELOAD_PARSER_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_toggle_capturing, id=ids.ID_TOGGLE_CAPTURING_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_auto_scroll, id=ids.ID_AUTO_SCROLL_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_clear, id=ids.ID_CLEAR_BUTTON)
@@ -121,17 +134,13 @@ class WinsnifferFrame(wx.Frame):
                 f.write(output)
         wx.CallAfter(doit)
 
-    def on_add(self, event):
-        # Enforce one window
-        add_structure_frame = self.FindWindowById(ids.ID_ADD_STRUCTURE_FRAME)
-        if add_structure_frame is not None:
-            add_structure_frame.SetFocus()
-            return
+    def on_set_parsers(self, event):
+        parsers_dialog = ParserDialog(self, self.parser_loader)
+        if parsers_dialog.ShowModal() == wx.ID_OK:
+            self.parser_loader.reload(parsers_dialog.parser_script_path)
 
-        add_structure_frame = wx.Frame(self, ids.ID_ADD_STRUCTURE_FRAME, "Add Structures")
-        wx.Panel(add_structure_frame)
-        add_structure_frame.Center()
-        add_structure_frame.Show()
+    def on_reload_parsers(self, event):
+        self.parser_loader.reload()
 
     def on_item_selected(self, event):
         list_control = event.GetEventObject()

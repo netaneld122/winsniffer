@@ -5,11 +5,12 @@ import winsniffer.gui.frame_formatting as frame_formatting
 
 
 class ContentProvider(object):
-    def __init__(self):
+    def __init__(self, parser_loader):
         self.initial_timestamp = time.time()
         self.sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[3], buffering=True, timeout_ms=100)
         self.index = 0
         self.should_stop = False
+        self.parser_loader = parser_loader
 
     @staticmethod
     def get_columns():
@@ -31,7 +32,7 @@ class ContentProvider(object):
             return None
 
         timestamp, frame = result
-        length, data_preview = frame_formatting.get_frame_data_preview(frame)
+        length, data_preview = frame_formatting.get_frame_data_preview(frame, self.parser_loader.get_parsers())
         protocol_stack = frame_formatting.get_protocol_stack(frame) + [''] * 2
         row = (
             self.index,

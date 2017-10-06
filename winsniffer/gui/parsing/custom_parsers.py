@@ -1,4 +1,4 @@
-from packet_parser import PacketParser
+from winsniffer.gui.parsing.packet_parser import PacketParser
 
 
 class EchoParser(PacketParser):
@@ -7,9 +7,9 @@ class EchoParser(PacketParser):
         return {'ICMP'}.issubset(protocols) and data.startswith('abcdef')
 
     def parse(self, frame, data):
-        return 'PING Echo was sent to {}'.format(self.ip(frame.data.dst))
+        return 'PING Echo was sent from {} to {}'.format(self.ip(frame.data.src), self.ip(frame.data.dst))
 
 
-ALL_PARSERS = (
+PARSERS = (
     EchoParser(),
 )

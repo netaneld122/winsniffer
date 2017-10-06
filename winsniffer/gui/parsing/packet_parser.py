@@ -1,7 +1,7 @@
 import binascii
 import string
 
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 
 
 class PacketParser(object):
