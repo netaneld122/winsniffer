@@ -1,4 +1,5 @@
 import os
+import sys
 
 import winsniffer.gui.parsing.custom_parsers as custom_parsers
 
@@ -27,6 +28,9 @@ class ParserLoader(object):
 
     @property
     def _default_parser_script_path(self):
+        # Handle pyinstaller
+        if getattr(sys, 'frozen', False):
+            return os.path.join(sys._MEIPASS, 'custom_parsers.py')
         return os.path.abspath(custom_parsers.__file__)
 
     @property

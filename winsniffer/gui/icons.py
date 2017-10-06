@@ -1,7 +1,11 @@
 import os
+import sys
 
 
 def icon(filename):
+    # Handle pyinstaller
+    if getattr(sys, 'frozen', False):
+        return os.path.join(sys._MEIPASS, 'icons', filename)
     return os.path.join(os.path.dirname(os.path.abspath(__file__)), 'icons', filename)
 
 
