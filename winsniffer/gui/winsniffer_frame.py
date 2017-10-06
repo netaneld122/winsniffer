@@ -185,7 +185,7 @@ class WinsnifferFrame(wx.Frame):
         result_success_codes = [self.list_control.add_result(result) for result in results]
         if any(result_success_codes):
             self.list_control.smart_auto_scroll(len(result_success_codes))
-            self.update_status_bar_frame_count()
+        self.update_status_bar_frame_count()
 
         # Update the interpreter global frames
         global frames
@@ -200,7 +200,7 @@ class WinsnifferFrame(wx.Frame):
                 results.append(result)
 
             # Is it flush time?
-            if len(results) > 0 and time.time() - start > 0.1:
+            if len(results) > 0 and time.time() - start > 0.15:
                 wx.CallAfter(self.add_results_and_scroll, results[:])
                 results = []
                 start = time.time()

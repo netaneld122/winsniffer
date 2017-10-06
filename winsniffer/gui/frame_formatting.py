@@ -1,5 +1,4 @@
 import binascii
-import string
 
 from winsniffer.gui.parsing.custom_parsers import ALL_PARSERS
 from winsniffer.gui.parsing.default_parser import DefaultParser
@@ -9,27 +8,18 @@ def prettify_mac_address(mac_address):
     return ':'.join(map(binascii.hexlify, mac_address))
 
 
-def get_protocol_name(frame, depth):
-    protocol = frame
+def get_protocol_stack(frame):
+    protocols = []
 
-    while hasattr(protocol, 'data') and depth > 0:
-        if isinstance(protocol.data, str):
-            return ''
+    while hasattr(frame, 'data'):
+        protocols.append(frame.__class__.__name__)
+        frame = frame.data
 
-        protocol = protocol.data
-        depth -= 1
-
-    return protocol.__class__.__name__
+    return protocols
 
 
 def find_parser(frame, data):
-    protocol_stack_set = {
-        get_protocol_name(frame, 0),
-        get_protocol_name(frame, 1),
-        get_protocol_name(frame, 2),
-        get_protocol_name(frame, 3)
-    }
-
+    protocol_stack_set = set(get_protocol_stack(frame))
     for parser in ALL_PARSERS:
         if parser.condition(protocol_stack_set, data):
             return parser

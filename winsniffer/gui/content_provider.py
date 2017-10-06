@@ -7,7 +7,7 @@ import winsniffer.gui.frame_formatting as frame_formatting
 class ContentProvider(object):
     def __init__(self):
         self.initial_timestamp = time.time()
-        self.sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[2], buffering=True, timeout_ms=100)
+        self.sniffer = winsniffer.Sniffer(winsniffer.get_all_devices()[3], buffering=True, timeout_ms=100)
         self.index = 0
         self.should_stop = False
 
@@ -32,14 +32,15 @@ class ContentProvider(object):
 
         timestamp, frame = result
         length, data_preview = frame_formatting.get_frame_data_preview(frame)
+        protocol_stack = frame_formatting.get_protocol_stack(frame) + [''] * 2
         row = (
             self.index,
             "{0:.7f}".format(timestamp - self.initial_timestamp),
             frame_formatting.prettify_mac_address(frame.src),
             frame_formatting.prettify_mac_address(frame.dst),
-            frame_formatting.get_protocol_name(frame, 0),
-            frame_formatting.get_protocol_name(frame, 1),
-            frame_formatting.get_protocol_name(frame, 2),
+            protocol_stack[0],
+            protocol_stack[1],
+            protocol_stack[2],
             str(length) + " Bytes",
             data_preview
         )
