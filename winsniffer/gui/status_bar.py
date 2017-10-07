@@ -6,7 +6,7 @@ class StatusBar(wx.StatusBar):
         wx.StatusBar.__init__(self, parent, wx.ID_ANY)
 
         self.SetFieldsCount(4)
-        self.SetStatusWidths([0, 200, 400, -1])
+        self.SetStatusWidths([0, 200, 300, -1])
 
     def update_frame_count(self, text):
         self.SetStatusText(text, 1)

@@ -64,5 +64,5 @@ class ListControl(wx.ListCtrl, listmixin.ListCtrlAutoWidthMixin):
         visible_items_count = self.GetCountPerPage()
         scroll_bottom_position = scroll_position + visible_items_count
         item_count = self.GetItemCount()
-        if scroll_bottom_position >= item_count - 2 - items_added:
+        if scroll_bottom_position >= item_count - 1 - items_added:
             self.EnsureVisible(item_count - 1)

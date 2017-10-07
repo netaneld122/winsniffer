@@ -1,5 +1,6 @@
 import os
 import sys
+import copy
 
 import winsniffer.gui.parsing.custom_parsers as custom_parsers
 
@@ -8,6 +9,9 @@ class Settings(object):
     def __init__(self, parser_script_path, network_interface):
         self.parser_script_path = parser_script_path
         self.network_interface = network_interface
+
+    def clone(self):
+        return copy.deepcopy(self)
 
 
 def get_default_parser_script_path():

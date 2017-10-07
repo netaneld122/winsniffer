@@ -14,7 +14,7 @@ class SettingsDialog(sized_controls.SizedDialog):
             "Settings",
             style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER)
 
-        self.settings = settings
+        self.settings = settings.clone()
 
         pane = self.GetContentsPane()
         pane.SetSizerType("form")

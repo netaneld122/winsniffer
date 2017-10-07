@@ -75,14 +75,16 @@ class WinsnifferFrame(wx.Frame):
         # Center the window
         self.Center()
 
-        self.should_stop = True
-        self.capture_thread = None
-        self.content_provider_lock = threading.Lock()
-
         # Bindings
         self.list_control.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_item_selected)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_filter, id=ids.ID_FILTER_CONTROL)
         self.Bind(wx.EVT_CLOSE, self.on_close)
+
+        # Start a new capturing thread
+        self.should_stop = False
+        self.content_provider_lock = threading.Lock()
+        self.capture_thread = threading.Thread(target=self.start_capturing)
+        self.capture_thread.start()
 
     @staticmethod
     def initialize_content_provider(settings, parser_loader):
@@ -103,7 +105,7 @@ class WinsnifferFrame(wx.Frame):
 
         tool_bar.AddTool(ids.ID_SAVE_BUTTON, "", wx.Bitmap(icons.SAVE), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Save")
-        tool_bar.AddTool(ids.ID_TOGGLE_CAPTURING_BUTTON, "", wx.Bitmap(icons.START), wx.NullBitmap, wx.ITEM_NORMAL,
+        tool_bar.AddTool(ids.ID_TOGGLE_CAPTURING_BUTTON, "", wx.Bitmap(icons.PAUSE), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Start Capturing")
         tool_bar.AddTool(ids.ID_AUTO_SCROLL_BUTTON, "", wx.Bitmap(icons.AUTO_SCROLL), wx.NullBitmap, wx.ITEM_NORMAL,
                          "Auto scroll")
@@ -154,7 +156,10 @@ class WinsnifferFrame(wx.Frame):
 
     def open_settings_dialog(self, settings):
         settings_dialog = SettingsDialog(self, settings)
-        return settings_dialog.ShowModal() == wx.ID_OK
+        if settings_dialog.ShowModal() == wx.ID_OK:
+            self.settings = settings_dialog.settings
+            return True
+        return False
 
     def on_settings_set(self, event):
         network_interface_before_dialog = self.settings.network_interface
@@ -168,7 +173,6 @@ class WinsnifferFrame(wx.Frame):
                     self.content_provider = self.initialize_content_provider(self.settings, self.parser_loader)
                 self.list_control.delete_all_results()
                 self.list_control.DeleteAllItems()
-
 
     def on_reload_parsers(self, event):
         self.parser_loader.reload()
