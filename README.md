@@ -20,6 +20,12 @@ for timestamp, frame in sniffer:
 Graphical Interface:
 
 
+Choose the settings:
+
+![alt Settings Dialog](https://i.imgur.com/vdqBQVD.png)
+
+Start capturing:
+
 ![alt Winsniffer GUI](https://i.imgur.com/fFYqwk8.png)
 
 Define your custom parser:
