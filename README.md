@@ -3,7 +3,7 @@
 This is a simple network sniffer written in Python for Windows, it comes along with a simple GUI.
 Its parsing engine can be easily extended to dissect new protocols.
 
-## Compiled Version Installation Guide ##
+## Compiled Version Installation ##
 
 - [Install](https://nmap.org/npcap/) the latest npcap version, upon installation specify the WinPcap compatibility flag
 - [Download](https://bitbucket.org/netaneld122/winsniffer/downloads/winsniffer.zip), extract and run winsniffer.exe
