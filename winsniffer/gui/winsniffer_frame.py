@@ -4,14 +4,16 @@ import threading
 import wx
 import wx.py
 
+import winsniffer
 import winsniffer.gui.ids as ids
 import winsniffer.gui.icons as icons
 
 from winsniffer.gui.content_provider import ContentProvider
 from winsniffer.gui.list_control import ListControl
 from winsniffer.gui.status_bar import StatusBar
-from winsniffer.gui.parser_dialog import ParserDialog
+from winsniffer.gui.settings_dialog import SettingsDialog
 from winsniffer.gui.parsing.parser_loader import ParserLoader
+from winsniffer.gui.settings import Settings, get_default_parser_script_path
 
 
 # Python shell global variables
@@ -22,8 +24,16 @@ class WinsnifferFrame(wx.Frame):
     def __init__(self, title):
         super(WinsnifferFrame, self).__init__(None, wx.ID_ANY, title, size=(1150, 700))
 
-        # This class is reponsible for reloading the parser script
-        self.parser_loader = ParserLoader()
+        # Configure initial settings
+        self.settings = Settings(get_default_parser_script_path(), winsniffer.get_all_devices()[0])
+        if not self.open_settings_dialog(self.settings):
+            self.Destroy()
+            return
+
+        # Initialize parser and content provider
+        self.parser_loader = ParserLoader(self.settings)
+        self.parser_loader.reload()
+        self.content_provider = self.initialize_content_provider(self.settings, self.parser_loader)
 
         # Create top level panel
         panel = wx.Panel(self)
@@ -40,7 +50,6 @@ class WinsnifferFrame(wx.Frame):
         splitter = wx.SplitterWindow(panel)
 
         # Add list control
-        self.content_provider = ContentProvider(self.parser_loader)
         self.list_control = ListControl(splitter, self.content_provider)
         self.list_control.SetBackgroundColour(wx.Colour(245, 245, 248))
 
@@ -61,24 +70,31 @@ class WinsnifferFrame(wx.Frame):
         # Set status bar
         self.status_bar = StatusBar(self)
         self.SetStatusBar(self.status_bar)
+        self.status_bar.update_network_interface_status(self.settings.network_interface)
 
         # Center the window
         self.Center()
 
         self.should_stop = True
         self.capture_thread = None
+        self.content_provider_lock = threading.Lock()
 
         # Bindings
         self.list_control.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_item_selected)
         self.Bind(wx.EVT_TEXT_ENTER, self.on_filter, id=ids.ID_FILTER_CONTROL)
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
+    @staticmethod
+    def initialize_content_provider(settings, parser_loader):
+        sniffer = winsniffer.Sniffer(settings.network_interface, buffering=True, timeout_ms=100)
+        return ContentProvider(sniffer, parser_loader)
+
     def set_tool_bar(self):
         tool_bar = self.CreateToolBar(wx.TB_HORIZONTAL | wx.NO_BORDER | wx.TB_FLAT | wx.TB_NODIVIDER)
 
         # Define buttons
-        tool_bar.AddTool(ids.ID_SET_PARSER_BUTTON, "", wx.Bitmap(icons.SET_PARSER), wx.NullBitmap, wx.ITEM_NORMAL,
-                         "Set Parser")
+        tool_bar.AddTool(ids.ID_SETTINGS_BUTTON, "", wx.Bitmap(icons.SETTINGS), wx.NullBitmap, wx.ITEM_NORMAL,
+                         "Settings")
 
         tool_bar.AddTool(ids.ID_RELOAD_PARSER_BUTTON, "", wx.Bitmap(icons.RELOAD_PARSER), wx.NullBitmap,
                          wx.ITEM_NORMAL, "Reload Parser")
@@ -103,7 +119,7 @@ class WinsnifferFrame(wx.Frame):
 
         # Bindings
         self.Bind(wx.EVT_TOOL, self.on_save, id=ids.ID_SAVE_BUTTON)
-        self.Bind(wx.EVT_TOOL, self.on_set_parsers, id=ids.ID_SET_PARSER_BUTTON)
+        self.Bind(wx.EVT_TOOL, self.on_settings_set, id=ids.ID_SETTINGS_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_reload_parsers, id=ids.ID_RELOAD_PARSER_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_toggle_capturing, id=ids.ID_TOGGLE_CAPTURING_BUTTON)
         self.Bind(wx.EVT_TOOL, self.on_auto_scroll, id=ids.ID_AUTO_SCROLL_BUTTON)
@@ -136,10 +152,23 @@ class WinsnifferFrame(wx.Frame):
             print('Saved ' + os.path.abspath(file_name))
         wx.CallAfter(doit)
 
-    def on_set_parsers(self, event):
-        parsers_dialog = ParserDialog(self, self.parser_loader)
-        if parsers_dialog.ShowModal() == wx.ID_OK:
-            self.parser_loader.reload(parsers_dialog.parser_script_path)
+    def open_settings_dialog(self, settings):
+        settings_dialog = SettingsDialog(self, settings)
+        return settings_dialog.ShowModal() == wx.ID_OK
+
+    def on_settings_set(self, event):
+        network_interface_before_dialog = self.settings.network_interface
+        if self.open_settings_dialog(self.settings):
+            self.parser_loader.reload()
+            self.status_bar.update_network_interface_status(self.settings.network_interface)
+
+            # Invalidate the capture if a different network interface was chosen
+            if network_interface_before_dialog != self.settings.network_interface:
+                with self.content_provider_lock:
+                    self.content_provider = self.initialize_content_provider(self.settings, self.parser_loader)
+                self.list_control.delete_all_results()
+                self.list_control.DeleteAllItems()
+
 
     def on_reload_parsers(self, event):
         self.parser_loader.reload()
@@ -206,7 +235,9 @@ class WinsnifferFrame(wx.Frame):
         results = []
         start = time.time()
         while not self.should_stop:
-            result = self.content_provider.get_next_result()
+            result = None
+            with self.content_provider_lock:
+                result = self.content_provider.get_next_result()
             if result is not None:
                 results.append(result)
 

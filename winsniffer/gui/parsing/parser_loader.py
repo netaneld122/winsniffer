@@ -1,22 +1,19 @@
 import os
 import sys
 
-import winsniffer.gui.parsing.custom_parsers as custom_parsers
-
 
 class ParserLoader(object):
-    def __init__(self):
+    def __init__(self, settings):
         self.parsers = []
-        self.script_path = self._default_parser_script_path
+        self.settings = settings
 
-    def reload(self, parsers_python_script_path=None):
-        if parsers_python_script_path is not None:
-            self.script_path = parsers_python_script_path
+    def reload(self):
         try:
             # The script must set the local PARSERS
             script_locals = dict()
-            execfile(self.script_path, dict(), script_locals)
-            assert 'PARSERS' in script_locals, "The parser script {} did not define PARSERS".format(self.script_path)
+            execfile(self.settings.parser_script_path, dict(), script_locals)
+            assert 'PARSERS' in script_locals, "The parser script {} did not define PARSERS".format(
+                self.settings.parser_script_path)
             self.parsers = script_locals['PARSERS']
             print('Reloaded parsers: ' + str(self.parsers))
         except RuntimeError:
@@ -25,14 +22,3 @@ class ParserLoader(object):
 
     def get_parsers(self):
         return self.parsers
-
-    @property
-    def _default_parser_script_path(self):
-        # Handle pyinstaller
-        if getattr(sys, 'frozen', False):
-            return os.path.join(sys._MEIPASS, 'custom_parsers.py')
-        return os.path.abspath(custom_parsers.__file__)
-
-    @property
-    def parser_script_path(self):
-        return self.script_path
